@@ -131,4 +131,10 @@ in rec {
 
   compose = fns: value: builtins.foldl' (acc: fn: fn acc) value fns;
 
+  apL = f: x: f x;
+  ${"<|"} = apL;
+
+  apR = x: f: f x;
+  ${"|>"} = apR;
+
 }

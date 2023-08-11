@@ -57,38 +57,8 @@ in rec {
   indexes = indices;
 
   # Int Conversions
-  toInt = str:
-    let
-      # RegEx: Match any leading whitespace, possibly a '-', one or more digits,
-      # and finally match any trailing whitespace.
-      strippedInput =
-        builtins.match "[[:space:]]*(-?[[:digit:]]+)[[:space:]]*" str;
-
-      # RegEx: Match a leading '0' then one or more digits.
-      isLeadingZero =
-        builtins.match "0[[:digit:]]+" (builtins.head strippedInput) == [ ];
-
-      # Attempt to parse input
-      parsedInput = builtins.fromJSON (builtins.head strippedInput);
-
-      generalError = "toInt: Could not convert ${escapeNixString str} to int.";
-
-      octalAmbigError =
-        "toInt: Ambiguity in interpretation of ${escapeNixString str}"
-        + " between octal and zero padded integer.";
-
-      # Error on presence of non digit characters.
-    in if strippedInput == null then
-      throw generalError
-      # Error on presence of leading zero/octal ambiguity.
-    else if isLeadingZero then
-      throw octalAmbigError
-      # Error if parse function fails.
-    else if !builtins.isInt parsedInput then
-      throw generalError
-      # Return result.
-    else
-      parsedInput;
+  toInt = builtins.fromJSON;
+  toFloat = builtins.fromJSON;
 
   fromInt = toString;
   fromFloat = toString;
