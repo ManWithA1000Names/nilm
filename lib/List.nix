@@ -30,7 +30,7 @@ in rec {
   foldl = reducefn: initialValue: list:
     let
       _foldl' = index: accumulator:
-        if index == builtins.length list then
+        if index == (builtins.length list) then
           accumulator
         else
           _foldl' (index + 1)

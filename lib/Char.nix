@@ -155,8 +155,9 @@ let
     "Y"
     "Z"
   ];
-in {
-  charToInt = c: builtins.getAttr c ascii-table;
+in
+{
+  charToInt = c: if builtins.hasAttr c ascii-table then builtins.getAttr c ascii-table else -1;
   toLower = builtins.replaceStrings upperChars lowerChars;
   toUpper = builtins.replaceStrings lowerChars upperChars;
 

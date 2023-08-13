@@ -1,9 +1,11 @@
 let
+  List = import ./List.nix;
   simple_pow = base: exp:
     let simple_pow' = exp: if exp == 0 then 1 else base * simple_pow' (exp - 1);
     in simple_pow' exp;
   DBL_EPSILON = 2.2204e-16;
-in rec {
+in
+rec {
   # Numbers
   inherit (builtins) add sub mul div floor;
 
@@ -25,18 +27,20 @@ in rec {
 
   ceiling = builtins.ceil;
 
-  round = let
-    roundPos = a:
-      if (a - (builtins.floor a)) >= 0.5 then
-        builtins.ceil a
-      else
-        builtins.floor a;
-    roundNeg = a:
-      if (a - (builtins.ceil a)) <= -0.5 then
-        builtins.floor a
-      else
-        builtins.ceil a;
-  in float: if float < 0 then roundNeg float else roundPos float;
+  round =
+    let
+      roundPos = a:
+        if (a - (builtins.floor a)) >= 0.5 then
+          builtins.ceil a
+        else
+          builtins.floor a;
+      roundNeg = a:
+        if (a - (builtins.ceil a)) <= -0.5 then
+          builtins.floor a
+        else
+          builtins.ceil a;
+    in
+    float: if float < 0 then roundNeg float else roundPos float;
 
   truncate = num: if num < 0 then builtins.ceil num else builtins.floor num;
 
@@ -74,7 +78,8 @@ in rec {
     let
       rt = remainderBy divisor dividend;
       I = if signum rt == -(signum divisor) then 1 else 0;
-    in rt + I * divisor;
+    in
+    rt + I * divisor;
 
   negate = num: -1 * num;
 
@@ -99,23 +104,29 @@ in rec {
             in rootBase' new_d (r + new_d)
           else
             r;
-      in rootBase' 1.0 1.0;
+      in
+      rootBase' 1.0 1.0;
 
   e = 2.718281828459045;
 
   # I think this is tailor series expansion, but am not sure.
-  ln = let
-    ln' = current_term: n: result: term_squared:
-      if current_term <= DBL_EPSILON * 10 then
-        result * 2
-      else
-        ln' (current_term * term_squared * ((2 * n) - 1) / ((2 * n) + 1))
-        (n + 1) (result + current_term) term_squared;
-  in num:
-  let
-    x = toFloat num;
-    term = (x - 1) / (x + 1);
-  in ln' term 1 0.0 (term * term);
+  ln =
+    let
+      ln' = current_term: n: result: term_squared:
+        if current_term <= DBL_EPSILON * 10 then
+          result * 2
+        else
+          ln' (current_term * term_squared * ((2 * n) - 1) / ((2 * n) + 1))
+            (n + 1)
+            (result + current_term)
+            term_squared;
+    in
+    num:
+    let
+      x = toFloat num;
+      term = (x - 1) / (x + 1);
+    in
+    ln' term 1 0.0 (term * term);
 
   logBase = base: num: (ln num) / (ln base);
 
@@ -127,9 +138,11 @@ in rec {
 
   always = a: b: a;
 
-  pipe = builtins.foldl' (acc: fn: fn acc);
+  pipe = List.foldl apL;
+  pipeL = List.foldr apL;
 
-  compose = fns: value: builtins.foldl' (acc: fn: fn acc) value fns;
+  compose = fns: value: List.foldl apL value fns;
+  composeL = fns: value: List.foldr apL value fns;
 
   apL = f: x: f x;
   ${"<|"} = apL;

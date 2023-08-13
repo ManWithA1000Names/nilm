@@ -3,8 +3,28 @@ let
   tuple = import ./Tuple.nix;
   char = import ./Char.nix;
   basics = import ./Basics.nix;
-in rec {
-  inherit (builtins) toString;
+  dict = import ./Dict.nix;
+in
+rec {
+  toString = thing:
+    if builtins.typeOf thing == "set" then
+      if dict.size thing == "2" && dict.member "fst" thing && dict.member "snd" thing then
+        ''(${toString (tuple.first thing)},${toString (tuple.second thing)})''
+      else
+        "{ " + (dict.foldl (key: value: acc: acc + "${key} = ${toString value}; ") "" thing) + "}"
+    else if builtins.typeOf thing == "list" then
+      "[" + (list.foldl (value: acc: acc + " " + toString value) "" thing) + "]"
+    else if builtins.typeOf thing == "lambda" then
+      "<lambda>"
+    else if builtins.typeOf thing == "null" then
+      "null"
+    else if builtins.typeOf thing == "bool" then
+      if thing then "true" else "false"
+    else if builtins.typeOf thing == "string" then
+      ''"${thing}"''
+    else
+      builtins.toString thing;
+
   isEmpty = s: s == "";
   length = builtins.stringLength;
   reverse = s: fromList (list.reverse (toList s));
@@ -19,21 +39,34 @@ in rec {
   join = sep: l: fromList (list.intersperse sep l);
 
   words = s: list.filter (s: !isEmpty s) (split "[[:space:]]" s);
-  lines = split (escapeRegex "\n");
+  lines = split "\n";
 
   # Lists
   toList = s: builtins.genList (p: builtins.substring p 1 s) (length s);
   fromList = list.foldl (v: acc: acc + v) "";
 
   # Escape
-  escape = list: builtins.replaceStrings list (map (c: "\\${c}") list);
+  escape = strs: builtins.replaceStrings strs (builtins.map (c: "\\${c}") strs);
   escapeRegex = escape (toList "\\[{()^$?*+|.");
   escapeNixString = s: escape [ "$" ] (builtins.toJSON s);
 
   # Substrings
-  slice = start: stop: s: fromList (list.slice start stop (toList s));
-  left = slice 0;
-  right = amount: s: slice (-amount) (length s) s;
+  slice = start: stop: s:
+    let
+      # handle negative inputs
+      actual_start' = if start < 0 then (length s) + start else start;
+      actual_start = if actual_start' < 0 then 0 else actual_start';
+      actual_stop' = if stop < 0 then (length s) + stop else stop;
+      actual_stop =
+        if actual_stop' >= (length s) then (length s) else actual_stop';
+    in
+    if actual_stop <= 0 || actual_start >= actual_stop then
+      ""
+    else
+      builtins.substring actual_start (actual_stop - actual_start) s;
+
+  left = amount: s: if amount == 0 then 0 else slice 0 amount s;
+  right = amount: s: if amount == 0 then "" else slice (-amount) (length s) s;
   dropLeft = amount: s: right ((length s) - amount) s;
   dropRight = amount: s: left ((length s) - amount) s;
 
@@ -52,7 +85,8 @@ in rec {
             [ index ]
           else
             [ ]) ++ indices' (index + 1);
-    in indices' 0;
+    in
+    indices' 0;
 
   indexes = indices;
 
