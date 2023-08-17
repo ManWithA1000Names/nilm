@@ -97,6 +97,8 @@ rec {
   fromInt = toString;
   fromFloat = toString;
 
+  fromChar = basics.identity;
+
   # Char
   cons = c: s: c + s;
   uncons = s: tuple.pair (left 1 s) (dropLeft 1 s);
