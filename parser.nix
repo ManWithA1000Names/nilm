@@ -34,7 +34,7 @@ let
               if (Bitwise.and code 63488 /*0xF800*/) == 55296/*0xD800*/ then
                 theLoop (next_i + 1) ((charAt next_i smallLength) == (charAt next_offset bigString)) (next_offset + 1) row (col + 1)
               else
-                theLoop (next_i) true (next_offset) row (col + 1)
+                theLoop (next_i) true next_offset row (col + 1)
           else
             theLoop next_i false next_offset row col
         else {
@@ -357,7 +357,7 @@ let
               builtins.abort "res2 = ${String.toString res2}"
             else
               if PStep.isBad res2 then
-                PStep.Bad (PStep.bool res || PStep.bool res2) PStep.bag res2
+                PStep.Bad (PStep.bool res || PStep.bool res2) (PStep.bag res2)
               else
                 PStep.Good
                   (PStep.bool res || PStep.bool res2)
@@ -415,7 +415,7 @@ let
       bagToList (Tuple.first bag.Append)
         (bagToList (Tuple.second bag.Append) list)
     else
-      builtins.abort "Invalid 'Bag' given to bagToList funciton. ";
+      builtins.abort "Invalid 'Bag' given to bagToList function.";
 
   # Token x -> Parser c x null
   token = t:
@@ -501,7 +501,7 @@ let
           (String.slice (State.offset s) floatOffset (State.src s));
         toValue = Result.ok floatSettings;
       in
-      PStep true (toValue n) (bumpOffset floatOffset s);
+      PStep.Good true (toValue n) (bumpOffset floatOffset s);
 
 
   # { int : Result x (Int -> a)
@@ -839,7 +839,7 @@ let
 
   # (Char -> Bool) -> Parser c x null
   chompWhile = isGood:
-    (s: chompWhileHelp isGood (State.offset s) (State.row) (State.col) s);
+    (s: chompWhileHelp isGood (State.offset s) (State.row s) (State.col s) s);
 
   # Token x -> Parser c x null
   chompUntil = t:
@@ -962,7 +962,7 @@ let
       let errors = bagToList (PStep.bag res) [ ]; in
       assert builtins.typeOf errors == "list";
       builtins.abort ''Failed to parse the input with the following errors:
-        ${List.foldl (value: acc: "ERROR @${String.toString (DeadEnd.row value)}:${String.toString (DeadEnd.col value)} - ${DeadEnd.problem value} - found: ${found src value}" + "\n" + acc) "" errors}''
+        ${List.foldl (value: acc: "ERROR @${String.toString (DeadEnd.row value)}:${String.toString (DeadEnd.col value)} - ${DeadEnd.problem value} Found: '${found src value}'" + "\n" + acc) "" errors}''
     else
       PStep.value res;
 
@@ -1118,7 +1118,7 @@ in
     (thing: acc:
       if Dict.member "|." thing then
         Advanced.ignorer acc thing."|."
-      else if Dict.member "|=" then
+      else if Dict.member "|=" thing then
         Advanced.keeper acc thing."|="
       else builtins.abort "Invalid invalid option in 'Parser.tranform' array. Expcted either '|.' or '|=' found: '${String.toString thing}'"
     );

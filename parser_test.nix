@@ -26,7 +26,7 @@ in
   # but it never calls the function given to succeed
   # and always return null.
 
-  parse_point_v5 = Parser.combine (Parser.succeed (x: y: builtins.abort "NEVER CALLED!")) [
+  parse_point_v5 = Parser.run (Parser.combine (Parser.succeed (x: y: {inherit x y;})) [
     { "|." = Parser.symbol "("; }
     { "|." = Parser.spaces; }
     { "|=" = Parser.float; }
@@ -36,5 +36,5 @@ in
     { "|=" = Parser.float; }
     { "|." = Parser.spaces; }
     { "|." = Parser.symbol ")"; }
-  ];
+  ]);
 }
