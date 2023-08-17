@@ -1,7 +1,6 @@
 {
   description = "A very basic flake";
 
-
   outputs = { self }: {
     Basics = import ./lib/Basics.nix;
     Bitwise = import ./lib/Bitwise.nix;
@@ -11,6 +10,6 @@
     String = import ./lib/String.nix;
     Set = import ./lib/Set.nix;
     Tuple = import ./lib/Tuple.nix;
-    Parser = import ./parser.nix { nilm = self; };
+    Parser = import ./parser.nix;
   };
 }
