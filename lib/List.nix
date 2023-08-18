@@ -1,7 +1,8 @@
 let
   basics = import ./Basics.nix;
   tuple = import ./Tuple.nix;
-in rec {
+in
+rec {
   inherit (builtins) map filter length concatMap head tail;
   # Create
   # form List std;
@@ -25,7 +26,8 @@ in rec {
         else
           [ (mapfn index (builtins.elemAt list index)) ]
           ++ indexedMap' (index + 1) list;
-    in indexedMap' 0 list;
+    in
+    indexedMap' 0 list;
 
   foldl = reducefn: initialValue: list:
     let
@@ -34,8 +36,9 @@ in rec {
           accumulator
         else
           _foldl' (index + 1)
-          (reducefn (builtins.elemAt list index) accumulator);
-    in _foldl' 0 initialValue;
+            (reducefn (builtins.elemAt list index) accumulator);
+    in
+    _foldl' 0 initialValue;
 
   foldr = reducefn: initialValue: list:
     let
@@ -44,8 +47,9 @@ in rec {
           accumulator
         else
           foldr' (index - 1)
-          (reducefn (builtins.elemAt list index) accumulator);
-    in foldr' ((builtins.length list) - 1) initialValue;
+            (reducefn (builtins.elemAt list index) accumulator);
+    in
+    foldr' ((builtins.length list) - 1) initialValue;
 
   reverse = foldl cons [ ];
 
@@ -60,7 +64,8 @@ in rec {
           false
         else
           all' (index + 1);
-    in all' 0;
+    in
+    all' 0;
 
   any = fn: list:
     let
@@ -71,7 +76,8 @@ in rec {
           true
         else
           all' (index + 1);
-    in all' 0;
+    in
+    all' 0;
 
   maximum = list: foldl basics.max (builtins.elemAt list 0) list;
 
@@ -89,7 +95,8 @@ in rec {
           [ (builtins.elemAt list index) ]
         else
           [ (builtins.elemAt list index) item ] ++ intersperse' (index + 1);
-    in if (length list) == 0 then list else intersperse' 0;
+    in
+    if (length list) == 0 then list else intersperse' 0;
 
   map2 = mapfn: listA: listB:
     let
@@ -101,7 +108,8 @@ in rec {
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index))
           ] ++ map2' (index + 1);
-    in map2' 0;
+    in
+    map2' 0;
 
   map3 = mapfn: listA: listB: listC:
     let
@@ -117,7 +125,8 @@ in rec {
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
               (builtins.elemAt listC index))
           ] ++ map3' (index + 1);
-    in map3' 0;
+    in
+    map3' 0;
 
   map4 = mapfn: listA: listB: listC: listD:
     let
@@ -132,9 +141,11 @@ in rec {
         else
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
-              (builtins.elemAt listC index) (builtins.elemAt listD index))
+              (builtins.elemAt listC index)
+              (builtins.elemAt listD index))
           ] ++ map4' (index + 1);
-    in map4' 0;
+    in
+    map4' 0;
 
   map5 = mapfn: listA: listB: listC: listD: listE:
     let
@@ -150,10 +161,12 @@ in rec {
         else
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
-              (builtins.elemAt listC index) (builtins.elemAt listD index)
+              (builtins.elemAt listC index)
+              (builtins.elemAt listD index)
               (builtins.elemAt listE index))
           ] ++ map5' (index + 1);
-    in map5' 0;
+    in
+    map5' 0;
 
   # Sort
   sort = builtins.sort basics."<";
@@ -172,7 +185,8 @@ in rec {
       actual_stop' = if stop < 0 then (length list) + stop else stop;
       actual_stop =
         if actual_stop' >= (length list) then (length list) else actual_stop';
-    in if actual_stop <= 0 || actual_start >= actual_stop then
+    in
+    if actual_stop <= 0 || actual_start >= actual_stop then
       [ ]
     else
       map (builtins.elemAt list) (range actual_start (actual_stop - 1));
@@ -192,7 +206,8 @@ in rec {
             [ ]
           else
             [ (builtins.elemAt list index) ] ++ take' (index + 1);
-      in take' 0;
+      in
+      take' 0;
 
   drop = amount: list:
     let
@@ -201,7 +216,8 @@ in rec {
           [ ]
         else
           [ (builtins.elemAt list index) ] ++ drop' (index + 1);
-    in drop' amount;
+    in
+    drop' amount;
 
   partition = test: listA:
     tuple.pair (filter test listA) (filter (x: !(test x)) listA);
@@ -210,5 +226,6 @@ in rec {
 
   zip = map2 tuple.pair;
   unique = foldr (x: acc: if any (y: x == y) acc then acc else cons x acc) [ ];
+  uniqueBy = f: foldr (x: acc: if any (y: (f x) == (f y)) acc then acc else cons x acc) [ ];
 
 }

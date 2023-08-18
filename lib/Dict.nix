@@ -1,7 +1,8 @@
 let
   list = import ./List.nix;
   tuple = import ./Tuple.nix;
-in rec {
+in
+rec {
   # Build
   empty = { };
   singleton = k: v: { ${k} = v; };
@@ -26,7 +27,7 @@ in rec {
 
   toList = dict:
     list.sortBy tuple.first
-    (list.zip (builtins.attrNames dict) (builtins.attrValues dict));
+      (list.zip (builtins.attrNames dict) (builtins.attrValues dict));
 
   fromList = list.foldl (item: acc: acc // tuple.toAttrs item) { };
 
@@ -39,7 +40,7 @@ in rec {
 
   filter = test: dict:
     fromList
-    (list.filter (t: test (tuple.first t) (tuple.second t)) (toList dict));
+      (list.filter (t: test (tuple.first t) (tuple.second t)) (toList dict));
 
   partition = test: dict:
     tuple.pair (filter test dict) (filter (a: b: !(test a b)) dict);
@@ -52,11 +53,15 @@ in rec {
 
   merge = acc1: acc2: acc3: dictA: dictB: init:
     let uniqueKeys = list.unique ((keys dictA) ++ (keys dictB));
-    in list.foldl (k: acc:
-      if (member k dictA) && (member k dictB) then
-        acc2 k (get k dictA) (get k dictB) acc
-      else if (member k dictA) then
-        acc1 k (get k dictA) acc
-      else
-        acc3 k (get k dictB) acc) init uniqueKeys;
+    in
+    list.foldl
+      (k: acc:
+        if (member k dictA) && (member k dictB) then
+          acc2 k (get k dictA) (get k dictB) acc
+        else if (member k dictA) then
+          acc1 k (get k dictA) acc
+        else
+          acc3 k (get k dictB) acc)
+      init
+      uniqueKeys;
 }
