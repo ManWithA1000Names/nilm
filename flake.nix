@@ -10,6 +10,7 @@
     String = import ./lib/String.nix;
     Set = import ./lib/Set.nix;
     Tuple = import ./lib/Tuple.nix;
+    Nix = import ./lib/Nix.nix;
     Parser = import ./parser.nix;
   };
 }

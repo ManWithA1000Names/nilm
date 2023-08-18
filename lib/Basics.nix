@@ -45,6 +45,7 @@ rec {
   truncate = num: if num < 0 then builtins.ceil num else builtins.floor num;
 
   toFloat = num: num * 1.0;
+  toInt = truncate;
 
   # Equallity
   eq = a: b: a == b;
