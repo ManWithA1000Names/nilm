@@ -13,10 +13,12 @@ in rec {
   remove = k: dict: builtins.removeAttrs dict [ k ];
 
   # Query
-  isEmpty = dict: builtins.length (builtins.attrNames dict) == 0;
+  isEmpty = dict: list.length (builtins.attrNames dict) == 0;
   member = builtins.hasAttr;
   get = builtins.getAttr;
   size = dict: builtins.length (builtins.attrNames dict);
+
+  getOr = key: default: set: if member key set then get key set else default;
 
   # Lists
   keys = dict: list.sort (builtins.attrNames dict);
