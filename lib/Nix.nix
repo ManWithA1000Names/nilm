@@ -13,6 +13,7 @@ rec {
 
   defaultOf = value: default (builtins.typeOf value);
 
+  # !! DISCLAIMER: the value is always evaluated.
   orDefault = cond: value: if cond then value else defaultOf value;
 
   isA = type: value: type == builtins.typeOf value;
