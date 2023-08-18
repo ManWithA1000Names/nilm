@@ -72,7 +72,7 @@ rec {
 
   # Check for substrings
   contains = tomatch: s: (builtins.match (escapeRegex tomatch) "${s}") != null;
-  startWith = sw: s: sw == left (length sw) s;
+  startsWith = sw: s: sw == left (length sw) s;
   endsWith = ew: s: ew == right (length ew) s;
 
   indices = tomatch: s:
