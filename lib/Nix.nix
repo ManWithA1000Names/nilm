@@ -11,7 +11,9 @@ rec {
     else if type == "lambda" then (_: null)
     else builtins.abort ''nilm.Nix.default got invalid type. Expected one of "int", "float", "bool", "string", "path", "null", "set", "list", "lambda". Found: ${type}'';
 
-  default_of = value: default (builtins.typeOf value);
+  defaultOf = value: default (builtins.typeOf value);
 
-  or_default = cond: value: if cond then value else default_of value;
+  orDefault = cond: value: if cond then value else defaultOf value;
+
+  isA = type: value: type == builtins.typeOf value;
 }
