@@ -1,3 +1,7 @@
+let
+  Dict = import ./Dict.nix;
+  List = import ./List.nix;
+in
 rec {
   default = type:
     if type == "int" then 0
@@ -17,4 +21,14 @@ rec {
   orDefault = cond: value: if cond then value else defaultOf value;
 
   isA = type: value: type == builtins.typeOf value;
+
+  deepMerge = itemA: itemB:
+    if builtins.typeOf itemA != builtins.typeOf itemB then
+      itemB
+    else if builtins.typeOf itemA == "set" then
+      Dict.merge (key: value: acc: Dict.insert key value acc) (key: value1: value2: acc: Dict.insert key (deepMerge value1 value2) acc) (key: value: acc: Dict.insert key value acc) itemA itemB { }
+    else if builtins.typeOf itemA == "list" then
+      List.map2 deepMerge itemA itemB
+    else
+      itemB;
 }
