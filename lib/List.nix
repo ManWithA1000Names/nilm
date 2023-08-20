@@ -169,7 +169,7 @@ rec {
     map5' 0;
 
   # Sort
-  sort = builtins.sort basics."<";
+  sort = builtins.sort basics."<|";
   sortBy = mapfn: builtins.sort (a: b: (mapfn a) < (mapfn b));
   sortWith = builtins.sort;
 
