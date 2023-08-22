@@ -4,23 +4,24 @@ let
   char = import ./Char.nix;
   basics = import ./Basics.nix;
   dict = import ./Dict.nix;
-in
-rec {
+  nix = import ./Nix.nix;
+in rec {
   toString = thing:
-    if builtins.typeOf thing == "set" then
-      if dict.size thing == "2" && dict.member "fst" thing && dict.member "snd" thing then
-        ''(${toString (tuple.first thing)},${toString (tuple.second thing)})''
-      else
-        "{ " + (dict.foldl (key: value: acc: acc + "${key} = ${toString value}; ") "" thing) + "}"
-    else if builtins.typeOf thing == "list" then
+    if nix.isA "tuple" thing then
+      "(${toString (tuple.first thing)},${toString (tuple.second thing)})"
+    else if nix.isA "set" thing then
+      "{ "
+      + (dict.foldl (key: value: acc: acc + "${key} = ${toString value}; ") ""
+        thing) + "}"
+    else if nix.isA "list" thing then
       "[" + (list.foldl (value: acc: acc + " " + toString value) "" thing) + "]"
-    else if builtins.typeOf thing == "lambda" then
+    else if nix.isA "lambda" thing then
       "<lambda>"
-    else if builtins.typeOf thing == "null" then
+    else if nix.isA "null" thing then
       "null"
-    else if builtins.typeOf thing == "bool" then
+    else if nix.isA "bool" thing then
       if thing then "true" else "false"
-    else if builtins.typeOf thing == "string" then
+    else if nix.isA "string" thing then
       ''"${thing}"''
     else
       builtins.toString thing;
@@ -59,8 +60,7 @@ rec {
       actual_stop' = if stop < 0 then (length s) + stop else stop;
       actual_stop =
         if actual_stop' >= (length s) then (length s) else actual_stop';
-    in
-    if actual_stop <= 0 || actual_start >= actual_stop then
+    in if actual_stop <= 0 || actual_start >= actual_stop then
       ""
     else
       builtins.substring actual_start (actual_stop - actual_start) s;
@@ -85,8 +85,7 @@ rec {
             [ index ]
           else
             [ ]) ++ indices' (index + 1);
-    in
-    indices' 0;
+    in indices' 0;
 
   indexes = indices;
 
