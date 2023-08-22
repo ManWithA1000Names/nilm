@@ -20,7 +20,11 @@ rec {
   # !! DISCLAIMER: the value is always evaluated.
   orDefault = cond: value: if cond then value else defaultOf value;
 
-  isA = type: value: type == builtins.typeOf value;
+  isA = type: value:
+    if type == "tuple" then
+      Dict.size value == 2 && Dict.member "fst" value && Dict.member "snd" value
+    else
+      type == builtins.typeOf value;
 
   deepMerge = itemA: itemB:
     if builtins.typeOf itemA != builtins.typeOf itemB then
