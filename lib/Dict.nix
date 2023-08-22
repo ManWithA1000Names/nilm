@@ -1,6 +1,7 @@
 let
   list = import ./List.nix;
   tuple = import ./Tuple.nix;
+  string = import ./String.nix;
 in
 rec {
   # Build
@@ -14,12 +15,35 @@ rec {
   remove = k: dict: builtins.removeAttrs dict [ k ];
 
   # Query
-  isEmpty = dict: list.length (builtins.attrNames dict) == 0;
-  member = builtins.hasAttr;
-  get = builtins.getAttr;
   size = dict: builtins.length (builtins.attrNames dict);
+  isEmpty = dict: size dict == 0;
 
-  getOr = key: default: set: if member key set then get key set else default;
+  member-raw = builtins.hasAttr;
+  get-raw = builtins.getAttr;
+  getOr-raw = key: default: set: if member-raw key set then get-raw key set else default;
+
+  member = key: dict:
+    let
+      keys = string.split "\\." key;
+      len = list.length keys;
+      loop = index: set:
+        if index == len then true
+        else
+          let
+            key = list.get index keys;
+          in
+          if member-raw key set then
+            loop (index + 1) (get-raw key set)
+          else false;
+    in
+    if len == 0 then false
+    else loop 0 dict;
+
+  get = key: set:
+    list.foldl get-raw set (string.split "\\." key);
+
+  getOr = key: default: set:
+    list.foldlWithTest { reduce = get-raw; test = member-raw; init = set; inherit default; } (string.split "\\." key);
 
   # Lists
   keys = dict: list.sort (builtins.attrNames dict);

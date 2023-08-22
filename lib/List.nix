@@ -31,8 +31,9 @@ rec {
 
   foldl = reducefn: initialValue: list:
     let
+      len = (builtins.length list);
       _foldl' = index: accumulator:
-        if index == (builtins.length list) then
+        if index == len then
           accumulator
         else
           _foldl' (index + 1)
@@ -40,16 +41,44 @@ rec {
     in
     _foldl' 0 initialValue;
 
+  foldlWithTest = { reduce, test, init, default }: list:
+    let
+      len = (builtins.length list);
+      _foldl' = index: accumulator:
+        if index == len then
+          accumulator
+        else
+          let item = builtins.elemAt list index; in
+          if ! (test item accumulator) then
+            default
+          else
+            _foldl' (index + 1) (reduce item accumulator);
+    in
+    _foldl' 0 init;
+
   foldr = reducefn: initialValue: list:
     let
       foldr' = index: accumulator:
         if index < 0 then
           accumulator
         else
-          foldr' (index - 1)
-            (reducefn (builtins.elemAt list index) accumulator);
+          foldr' (index - 1) (reducefn (builtins.elemAt list index) accumulator);
     in
     foldr' ((builtins.length list) - 1) initialValue;
+
+  foldrWithTest = { reduce, test, init, default }: list:
+    let
+      foldr' = index: accumulator:
+        if index < 0 then
+          accumulator
+        else
+          let item = (builtins.elemAt list index); in
+          if !(test item accumulator) then
+            default
+          else
+            foldr' (index - 1) (reduce item accumulator);
+    in
+    foldr' ((builtins.length list) - 1) init;
 
   reverse = foldl cons [ ];
 
