@@ -22,7 +22,7 @@ rec {
 
   isA = type: value:
     if type == "tuple" then
-      Dict.size value == 2 && Dict.member "fst" value && Dict.member "snd" value
+      builtins.typeOf value == "set" && Dict.size value == 2 && Dict.member "fst" value && Dict.member "snd" value
     else
       type == builtins.typeOf value;
 
