@@ -2,8 +2,8 @@ let
   list = import ./List.nix;
   tuple = import ./Tuple.nix;
   string = import ./String.nix;
-in
-rec {
+  nix = import ./Nix.nix;
+in rec {
   # Build
   empty = { };
   singleton = k: v: { ${k} = v; };
@@ -20,30 +20,33 @@ rec {
 
   member-raw = builtins.hasAttr;
   get-raw = builtins.getAttr;
-  getOr-raw = key: default: set: if member-raw key set then get-raw key set else default;
+  getOr-raw = key: default: set:
+    if member-raw key set then get-raw key set else default;
 
   member = key: dict:
     let
       keys = string.split "\\." key;
       len = list.length keys;
       loop = index: set:
-        if index == len then true
+        if index == len then
+          true
         else
-          let
-            key = list.get index keys;
-          in
-          if member-raw key set then
+          let key = list.get index keys;
+          in if member-raw key set then
             loop (index + 1) (get-raw key set)
-          else false;
-    in
-    if len == 0 then false
-    else loop 0 dict;
+          else
+            false;
+    in if len == 0 then false else loop 0 dict;
 
-  get = key: set:
-    list.foldl get-raw set (string.split "\\." key);
+  get = key: set: list.foldl get-raw set (string.split "\\." key);
 
   getOr = key: default: set:
-    list.foldlWithTest { reduce = get-raw; test = member-raw; init = set; inherit default; } (string.split "\\." key);
+    list.foldlWithTest {
+      reduce = get-raw;
+      test = member-raw;
+      init = set;
+      inherit default;
+    } (string.split "\\." key);
 
   # Lists
   keys = dict: list.sort (builtins.attrNames dict);
@@ -51,7 +54,7 @@ rec {
 
   toList = dict:
     list.sortBy tuple.first
-      (list.zip (builtins.attrNames dict) (builtins.attrValues dict));
+    (list.zip (builtins.attrNames dict) (builtins.attrValues dict));
 
   fromList = list.foldl (item: acc: acc // tuple.toAttrs item) { };
 
@@ -64,7 +67,7 @@ rec {
 
   filter = test: dict:
     fromList
-      (list.filter (t: test (tuple.first t) (tuple.second t)) (toList dict));
+    (list.filter (t: test (tuple.first t) (tuple.second t)) (toList dict));
 
   partition = test: dict:
     tuple.pair (filter test dict) (filter (a: b: !(test a b)) dict);
@@ -77,15 +80,17 @@ rec {
 
   merge = acc1: acc2: acc3: dictA: dictB: init:
     let uniqueKeys = list.unique ((keys dictA) ++ (keys dictB));
-    in
-    list.foldl
-      (k: acc:
-        if (member k dictA) && (member k dictB) then
-          acc2 k (get k dictA) (get k dictB) acc
-        else if (member k dictA) then
-          acc1 k (get k dictA) acc
-        else
-          acc3 k (get k dictB) acc)
-      init
-      uniqueKeys;
+    in list.foldl (k: acc:
+      if (member k dictA) && (member k dictB) then
+        acc2 k (get k dictA) (get k dictB) acc
+      else if (member k dictA) then
+        acc1 k (get k dictA) acc
+      else
+        acc3 k (get k dictB) acc) init uniqueKeys;
+
+  flatten = foldl (key: value: acc:
+    if nix.isA "set" value then
+      union (foldl (keys: insert "${key}${keys}") { } (flatten value)) acc
+    else
+      insert key value acc) { };
 }
