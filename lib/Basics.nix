@@ -151,4 +151,5 @@ rec {
   apR = x: f: f x;
   ${"|>"} = apR;
 
+  flip = fn: a: b: fn b a;
 }
