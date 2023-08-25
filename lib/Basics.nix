@@ -140,10 +140,8 @@ rec {
   always = a: b: a;
 
   pipe = List.foldl apL;
-  pipeL = List.foldr apL;
 
-  compose = fns: value: List.foldl apL value fns;
-  composeL = fns: value: List.foldr apL value fns;
+  compose = fns: value: List.foldr apL value fns;
 
   apL = f: x: f x;
   ${"<|"} = apL;
