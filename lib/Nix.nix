@@ -1,14 +1,16 @@
 let
   Dict = import ./Dict.nix;
   List = import ./List.nix;
+  Tuple = import ./Tuple.nix;
 in
 rec {
   default = type:
     if type == "int" then 0
+    else if type == "tuple" then Tuple.pair null null
     else if type == "float" then 0.0
     else if type == "bool" then false
     else if type == "string" then ""
-    else if type == "path" then ./.
+    else if type == "path" then /build
     else if type == "null" then null
     else if type == "set" then { }
     else if type == "list" then [ ]
