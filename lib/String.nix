@@ -73,7 +73,7 @@ rec {
   dropRight = amount: s: left ((length s) - amount) s;
 
   # Check for substrings
-  contains = tomatch: s: (builtins.match (escapeRegex tomatch) "${s}") != null;
+  contains = tomatch: s: builtins.match ".*${escapeRegex tomatch}.*" "${s}" != null;
   startsWith = sw: s: sw == left (length sw) s;
   endsWith = ew: s: ew == right (length ew) s;
 
