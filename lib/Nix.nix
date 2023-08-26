@@ -1,6 +1,7 @@
 let
   Dict = import ./Dict.nix;
   List = import ./List.nix;
+  Basics = import ./Basics.nix;
   Tuple = import ./Tuple.nix;
 in
 rec {
@@ -14,7 +15,7 @@ rec {
     else if type == "null" then null
     else if type == "set" then { }
     else if type == "list" then [ ]
-    else if type == "lambda" then (_: null)
+    else if type == "lambda" then Basics.identity
     else builtins.abort ''nilm.Nix.default got invalid type. Expected one of "int", "float", "bool", "string", "path", "null", "set", "list", "lambda". Found: ${type}'';
 
   defaultOf = value: default (builtins.typeOf value);

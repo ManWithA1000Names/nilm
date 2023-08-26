@@ -1,6 +1,7 @@
 let
   basics = import ./Basics.nix;
   tuple = import ./Tuple.nix;
+  nix = import ./Nix.nix;
 in
 rec {
   inherit (builtins) map filter length concatMap head tail;
@@ -197,5 +198,7 @@ rec {
   zip = map2 tuple.pair;
   unique = foldr (x: acc: if any (y: x == y) acc then acc else cons x acc) [ ];
   uniqueBy = f: foldr (x: acc: if any (y: (f x) == (f y)) acc then acc else cons x acc) [ ];
+
+  flatten = list: builtins.concatLists (map (v: if nix.isA "list" v then flatten v else [ v ]) list);
 
 }

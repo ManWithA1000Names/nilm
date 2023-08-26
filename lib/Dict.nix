@@ -3,6 +3,14 @@ let
   tuple = import ./Tuple.nix;
   string = import ./String.nix;
   nix = import ./Nix.nix;
+  basics = import ./Basics.nix;
+
+  convertKeyToList = basics.compose [
+    (list.filter (v: !string.isEmpty v))
+    list.flatten
+    (list.map (v: if nix.isA "string" v then string.split "\\." v else v))
+    (builtins.split "'([^']+)'")
+  ];
 in
 rec {
   # Build
@@ -10,23 +18,24 @@ rec {
   singleton = k: v: { ${k} = v; };
 
   insert = k: v: dict: dict // { ${k} = v; };
-
   update = k: mapfn: dict: dict // { ${k} = mapfn (builtins.getAttr k dict); };
-
   remove = k: dict: if nix.isA "list" k then builtins.removeAttrs dict k else builtins.removeAttrs dict [ k ];
 
   # Query
-  size = dict: builtins.length (builtins.attrNames dict);
+  get = builtins.getAttr;
+  member = builtins.hasAttr;
   isEmpty = dict: size dict == 0;
+  size = dict: builtins.length (builtins.attrNames dict);
+  getOr = key: default: set: if member key set then get key set else default;
 
-  member-raw = builtins.hasAttr;
-  get-raw = builtins.getAttr;
-  getOr-raw = key: default: set:
-    if member-raw key set then get-raw key set else default;
-
-  member = key: dict:
+  get-rec = key: set: list.foldl get-raw set (convertKeyToList key);
+  getOr-rec = key: default: set:
+    list.foldlWithTest
+      { reduce = get-raw; test = member-raw; init = set; inherit default; }
+      (convertKeyToList key);
+  member-rec = key: dict:
     let
-      keys = string.split "\\." key;
+      keys = convertKeyToList key;
       len = list.length keys;
       loop = index: set:
         if index == len then
@@ -40,18 +49,6 @@ rec {
             false;
     in
     if len == 0 then false else loop 0 dict;
-
-  get = key: set: list.foldl get-raw set (string.split "\\." key);
-
-  getOr = key: default: set:
-    list.foldlWithTest
-      {
-        reduce = get-raw;
-        test = member-raw;
-        init = set;
-        inherit default;
-      }
-      (string.split "\\." key);
 
   # Lists
   keys = dict: list.sort (builtins.attrNames dict);

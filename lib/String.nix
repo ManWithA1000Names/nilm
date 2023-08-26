@@ -5,7 +5,8 @@ let
   basics = import ./Basics.nix;
   dict = import ./Dict.nix;
   nix = import ./Nix.nix;
-in rec {
+in
+rec {
   toString = thing:
     if nix.isA "tuple" thing then
       "(${toString (tuple.first thing)},${toString (tuple.second thing)})"
@@ -60,7 +61,8 @@ in rec {
       actual_stop' = if stop < 0 then (length s) + stop else stop;
       actual_stop =
         if actual_stop' >= (length s) then (length s) else actual_stop';
-    in if actual_stop <= 0 || actual_start >= actual_stop then
+    in
+    if actual_stop <= 0 || actual_start >= actual_stop then
       ""
     else
       builtins.substring actual_start (actual_stop - actual_start) s;
@@ -85,7 +87,8 @@ in rec {
             [ index ]
           else
             [ ]) ++ indices' (index + 1);
-    in indices' 0;
+    in
+    indices' 0;
 
   indexes = indices;
 
