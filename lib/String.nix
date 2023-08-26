@@ -118,9 +118,10 @@ rec {
 
   trim = basics.compose [ trimLeft trimRight ];
   trimLeft = s:
-    list.get 0 (list.filter (p: !isEmpty p) (split "^[[:space:]]*" s));
+    join "" (list.filter (p: !isEmpty p) (split "^[[:space:]]*" s));
+
   trimRight = s:
-    list.get 0 (list.filter (p: !isEmpty p) (split "[[:space:]]*$" s));
+    join "" (list.filter (p: !isEmpty p) (split "[[:space:]]*$" s));
 
   # High-Order Functions
   map = mapfn: s: fromList (list.map mapfn (toList s));
