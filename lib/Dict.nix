@@ -48,11 +48,6 @@ rec {
     let
       keys = convertKeyToKeys k;
 
-      makeNewSet = keys: value:
-        if list.isEmpty keys then value else
-        let key = list.get 0 keys; in
-        { ${key} = makeNewSet (list.drop 1 keys) value; };
-
       applyRec = keys: old_set:
         let key = list.get 0 keys; in
         if list.length keys == 1 then

@@ -38,7 +38,7 @@ rec {
   concat = fromList;
   split = matcher: s: list.filter builtins.isString (builtins.split matcher s);
 
-  join = sep: l: fromList (list.intersperse sep l);
+  join = builtins.concatStringsSep;
 
   words = s: list.filter (s: !isEmpty s) (split "[[:space:]]" s);
   lines = split "\n";

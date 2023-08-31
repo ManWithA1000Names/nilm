@@ -2,8 +2,9 @@ let
   basics = import ./Basics.nix;
   tuple = import ./Tuple.nix;
   nix = import ./Nix.nix;
-in
-rec {
+  dict = import ./Dict.nix;
+  string = import ./String.nix;
+in rec {
   inherit (builtins) map filter length concatMap head tail;
   # Create
   # form List std;
@@ -27,40 +28,39 @@ rec {
         else
           [ (mapfn index (builtins.elemAt list index)) ]
           ++ indexedMap' (index + 1) list;
-    in
-    indexedMap' 0 list;
+    in indexedMap' 0 list;
 
   foldl = reducefn: builtins.foldl' (basics.flip reducefn);
   foldr = reducefn: init: list: foldl reducefn init (reverse list);
 
-  foldlWithTest = { reduce, test, init, default }: list:
+  foldlWithTest = { reduce, test, init, default }:
+    list:
     let
-      len = (builtins.length list);
+      len = builtins.length list;
       _foldl' = index: accumulator:
         if index == len then
           accumulator
         else
-          let item = builtins.elemAt list index; in
-          if ! (test item accumulator) then
+          let item = builtins.elemAt list index;
+          in if !(test item accumulator) then
             default
           else
             _foldl' (index + 1) (reduce item accumulator);
-    in
-    _foldl' 0 init;
+    in _foldl' 0 init;
 
-  foldrWithTest = { reduce, test, init, default }: list:
+  foldrWithTest = { reduce, test, init, default }:
+    list:
     let
       foldr' = index: accumulator:
         if index < 0 then
           accumulator
         else
-          let item = (builtins.elemAt list index); in
-          if !(test item accumulator) then
+          let item = builtins.elemAt list index;
+          in if !(test item accumulator) then
             default
           else
             foldr' (index - 1) (reduce item accumulator);
-    in
-    foldr' ((builtins.length list) - 1) init;
+    in foldr' ((builtins.length list) - 1) init;
 
   reverse = foldl cons [ ];
 
@@ -85,8 +85,7 @@ rec {
           [ (builtins.elemAt list index) ]
         else
           [ (builtins.elemAt list index) item ] ++ intersperse' (index + 1);
-    in
-    if length list == 0 then list else intersperse' 0;
+    in if length list == 0 then list else intersperse' 0;
 
   map2 = mapfn: listA: listB:
     let
@@ -98,8 +97,7 @@ rec {
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index))
           ] ++ map2' (index + 1);
-    in
-    map2' 0;
+    in map2' 0;
 
   map3 = mapfn: listA: listB: listC:
     let
@@ -115,8 +113,7 @@ rec {
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
               (builtins.elemAt listC index))
           ] ++ map3' (index + 1);
-    in
-    map3' 0;
+    in map3' 0;
 
   map4 = mapfn: listA: listB: listC: listD:
     let
@@ -131,11 +128,9 @@ rec {
         else
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
-              (builtins.elemAt listC index)
-              (builtins.elemAt listD index))
+              (builtins.elemAt listC index) (builtins.elemAt listD index))
           ] ++ map4' (index + 1);
-    in
-    map4' 0;
+    in map4' 0;
 
   map5 = mapfn: listA: listB: listC: listD: listE:
     let
@@ -151,12 +146,10 @@ rec {
         else
           [
             (mapfn (builtins.elemAt listA index) (builtins.elemAt listB index)
-              (builtins.elemAt listC index)
-              (builtins.elemAt listD index)
+              (builtins.elemAt listC index) (builtins.elemAt listD index)
               (builtins.elemAt listE index))
           ] ++ map5' (index + 1);
-    in
-    map5' 0;
+    in map5' 0;
 
   # Sort
   sort = builtins.sort basics.lt;
@@ -176,8 +169,7 @@ rec {
       actual_stop' = if stop < 0 then (length list) + stop else stop;
       actual_stop =
         if actual_stop' >= (length list) then (length list) else actual_stop';
-    in
-    if actual_stop <= 0 || actual_start >= actual_stop then
+    in if actual_stop <= 0 || actual_start >= actual_stop then
       [ ]
     else
       map (builtins.elemAt list) (range actual_start (actual_stop - 1));
@@ -188,17 +180,28 @@ rec {
   isEmpty = list: length list == 0;
 
   take = amount: list: if amount < 0 then [ ] else slice 0 amount list;
-  drop = amount: list: if amount < 0 then list else slice amount (length list) list;
+  drop = amount: list:
+    if amount < 0 then list else slice amount (length list) list;
 
   partition = test: listA:
-    tuple.pair (filter test listA) (filter (x: !(test x)) listA);
+    let p = builtins.partition test listA;
+    in tuple.pair p.right p.left;
 
   unzip = list: tuple.pair (map (x: x.fst) list) (map (x: x.snd) list);
 
   zip = map2 tuple.pair;
   unique = foldr (x: acc: if any (y: x == y) acc then acc else cons x acc) [ ];
-  uniqueBy = f: foldr (x: acc: if any (y: (f x) == (f y)) acc then acc else cons x acc) [ ];
+  uniqueBy = f:
+    foldr (x: acc: if any (y: (f x) == (f y)) acc then acc else cons x acc) [ ];
 
-  flatten = list: builtins.concatLists (map (v: if nix.isA "list" v then flatten v else [ v ]) list);
+  flatten =
+    builtins.concatMap (v: if nix.isA "list" v then flatten v else [ v ]);
 
+  group = basics.compose [ dict.values (builtins.groupBy string.toString) ];
+
+  groupBy = picker:
+    basics.compose [
+      dict.values
+      (builtins.groupBy (item: (string.toString (picker item))))
+    ];
 }

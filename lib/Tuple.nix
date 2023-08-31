@@ -10,8 +10,14 @@
   second = t: t.snd;
 
   # Map
-  mapFirst = mapfn: t: t // { fst = mapfn t.fst; };
-  mapSecond = mapfn: t: t // { snd = mapfn t.snd; };
+  mapFirst = mapfn: t: {
+    fst = mapfn t.fst;
+    inherit (t) snd;
+  };
+  mapSecond = mapfn: t: {
+    inherit (t) fst;
+    snd = mapfn t.snd;
+  };
   mapBoth = mapOne: mapTwo: t: {
     fst = mapOne t.fst;
     snd = mapTwo t.snd;
